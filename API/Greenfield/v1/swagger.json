@@ -37,6 +37,52 @@
         ]
       }
     },
+    "/api/v1/users/{idOrEmail}/api-keys/{apikey}": {
+      "delete": {
+        "operationId": "ApiKeys_DeleteUserApiKey",
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Revoke an API Key of target user",
+        "description": "Revoke the API key of a target user so that it cannot be used anymore",
+        "parameters": [
+          {
+            "name": "apikey",
+            "in": "path",
+            "required": true,
+            "description": "The API Key to revoke",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idOrEmail",
+            "in": "path",
+            "required": true,
+            "description": "The target user's id or email",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The key has been deleted"
+          },
+          "404": {
+            "description": "The key is not found for this user"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "unrestricted"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/api-keys/current": {
       "get": {
         "operationId": "ApiKeys_GetCurrentApiKey",
@@ -69,7 +115,10 @@
         },
         "security": [
           {
-            "API_Key": []
+            "API_Key": [
+              "btcpay.server.canmanageusers"
+            ],
+            "Basic": []
           }
         ]
       },
@@ -179,6 +228,93 @@
           {
             "API_Key": [
               "unrestricted"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{idOrEmail}/api-keys": {
+      "post": {
+        "operationId": "ApiKeys_CreateUserApiKey",
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Create a new API Key for a user",
+        "description": "Create a new API Key for a user",
+        "parameters": [
+          {
+            "name": "idOrEmail",
+            "in": "path",
+            "required": true,
+            "description": "The target user's id or email",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Information about the new api key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyData"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing authorization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "description": "The label of the new API Key",
+                    "nullable": true
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "description": "The permissions granted to this API Key (See API Key Authentication)",
+                    "nullable": true,
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.server.canmanageusers"
             ],
             "Basic": []
           }
@@ -309,6 +445,84 @@
             "Basic": []
           }
         ]
+      },
+      "get": {
+        "tags": [
+          "Apps",
+          "POS",
+          "Point of Sale"
+        ],
+        "operationId": "Apps_GetPointOfSaleApp",
+        "summary": "Get Point of Sale app data",
+        "description": "Returns POS app data",
+        "responses": {
+          "200": {
+            "description": "POS app data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointOfSaleAppData"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "POS app with specified ID was not found"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/apps/crowdfund/{appId}": {
+      "parameters": [
+        {
+          "name": "appId",
+          "in": "path",
+          "required": true,
+          "description": "Crowdfund app ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Apps",
+          "Crowdfund"
+        ],
+        "operationId": "Apps_GetCrowdfundApp",
+        "summary": "Get crowdfund app data",
+        "description": "Returns crowdfund app data",
+        "responses": {
+          "200": {
+            "description": "Crowdfund app data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrowdfundAppData"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Crowdfund app with specified ID was not found"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
       }
     },
     "/api/v1/stores/{storeId}/apps/crowdfund": {
@@ -379,7 +593,7 @@
         "tags": [
           "Apps"
         ],
-        "operationId": "Apps_GetPointOfSaleApp",
+        "operationId": "Apps_GetApp",
         "summary": "Get basic app data",
         "description": "Returns basic app data shared between all types of apps",
         "parameters": [
@@ -421,7 +635,7 @@
         "tags": [
           "Apps"
         ],
-        "operationId": "Apps_DeletePointOfSaleApp",
+        "operationId": "Apps_DeleteApp",
         "summary": "Delete app",
         "description": "Deletes apps with specified ID",
         "parameters": [
@@ -441,6 +655,83 @@
           },
           "404": {
             "description": "App with specified ID was not found"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stores/{storeId}/apps": {
+      "parameters": [
+        {
+          "name": "storeId",
+          "in": "path",
+          "required": true,
+          "description": "The store ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Apps"
+        ],
+        "operationId": "Apps_GetAllAppsForStore",
+        "summary": "Get basic app data for all apps for a store",
+        "description": "Returns basic app data for all apps for a store",
+        "responses": {
+          "200": {
+            "description": "Array of basic app data object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BasicAppData"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/apps": {
+      "get": {
+        "tags": [
+          "Apps"
+        ],
+        "operationId": "Apps_GetAllApps",
+        "summary": "Get basic app data for all apps for all stores for a user",
+        "description": "Returns basic app data for all apps for all stores",
+        "responses": {
+          "200": {
+            "description": "Array of basic app data object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BasicAppData"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1052,6 +1343,109 @@
         ]
       }
     },
+    "/api/v1/stores/{storeId}/custodian-accounts/{accountId}/withdrawals/simulation": {
+      "post": {
+        "operationId": "Custodians_SimulateWithdrawFromStoreCustodianAccount",
+        "tags": [
+          "Custodians"
+        ],
+        "summary": "Simulate a withdrawal",
+        "description": "Get more information about a potential withdrawal including fees, minimum and maximum quantities for the given asset and quantity.",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "description": "The Custodian Account ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The Store ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentMethod",
+            "in": "query",
+            "required": true,
+            "description": "The payment method to be used for the withdrawal.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "qty",
+            "in": "query",
+            "required": true,
+            "description": "The quantity to simulate a withdrawal for.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawalRequestData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Information about a potential withdrawal including fees, minimum and maximum quantities.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawalSimulationResultData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Withdrawal is not possible because you don't have this much in your account."
+          },
+          "404": {
+            "description": "Withdrawal is not possible for this payment method."
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "description": "If you are authenticated but forbidden to create withdrawals"
+                    },
+                    {
+                      "type": "string",
+                      "description": "Withdrawing to the address provided is not allowed"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canwithdrawfromcustodianaccounts"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/stores/{storeId}/custodian-accounts/{accountId}/withdrawals": {
       "post": {
         "operationId": "Custodians_WithdrawFromStoreCustodianAccount",
@@ -1117,7 +1511,7 @@
                   "oneOf": [
                     {
                       "type": "string",
-                      "description": "If you are authenticated but forbidden to create trades"
+                      "description": "If you are authenticated but forbidden to withdraw"
                     },
                     {
                       "type": "string",
@@ -1140,7 +1534,7 @@
       }
     },
     "/api/v1/stores/{storeId}/custodian-accounts/{accountId}/withdrawals/{withdrawalId}": {
-      "post": {
+      "get": {
         "operationId": "Custodians_GetStoreCustodianAccountWithdrawalInfo",
         "tags": [
           "Custodians"
@@ -2457,7 +2851,7 @@
         "security": [
           {
             "API_Key": [
-              "btcpay.server.canuseinternallightningnode"
+              "btcpay.server.canviewlightninginvoiceinternalnode"
             ],
             "Basic": []
           }
@@ -2635,7 +3029,7 @@
         "security": [
           {
             "API_Key": [
-              "btcpay.server.canuseinternallightningnode"
+              "btcpay.server.canviewlightninginvoiceinternalnode"
             ],
             "Basic": []
           }
@@ -2702,6 +3096,96 @@
           {
             "API_Key": [
               "btcpay.server.cancreatelightninginvoiceinternalnode"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/server/lightning/{cryptoCode}/payments": {
+      "get": {
+        "tags": [
+          "Lightning (Internal Node)"
+        ],
+        "summary": "Get payments",
+        "parameters": [
+          {
+            "name": "cryptoCode",
+            "in": "path",
+            "required": true,
+            "description": "The cryptoCode of the lightning-node to query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "BTC"
+          },
+          {
+            "name": "includePending",
+            "in": "query",
+            "required": false,
+            "description": "Also include pending payments",
+            "schema": {
+              "type": "boolean",
+              "nullable": true,
+              "default": false
+            }
+          },
+          {
+            "name": "offsetIndex",
+            "in": "query",
+            "required": false,
+            "description": "The index of a payment that will be used as the start of the list",
+            "schema": {
+              "type": "number",
+              "nullable": true,
+              "default": 0
+            }
+          }
+        ],
+        "description": "View information about the lightning payments",
+        "operationId": "InternalLightningNodeApi_GetPayments",
+        "responses": {
+          "200": {
+            "description": "Lightning payment data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LightningPaymentData"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing authorization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unable to access the lightning node"
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.server.canuseinternallightningnode"
             ],
             "Basic": []
           }
@@ -3220,7 +3704,7 @@
         "security": [
           {
             "API_Key": [
-              "btcpay.store.cancreatelightninginvoice"
+              "btcpay.store.canviewlightninginvoice"
             ],
             "Basic": []
           }
@@ -3416,7 +3900,7 @@
         "security": [
           {
             "API_Key": [
-              "btcpay.store.cancreatelightninginvoice"
+              "btcpay.store.canviewlightninginvoice"
             ],
             "Basic": []
           }
@@ -3492,6 +3976,105 @@
           {
             "API_Key": [
               "btcpay.server.cancreatelightninginvoiceinternalnode"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stores/{storeId}/lightning/{cryptoCode}/payments": {
+      "get": {
+        "tags": [
+          "Lightning (Store)"
+        ],
+        "summary": "Get payments",
+        "parameters": [
+          {
+            "name": "cryptoCode",
+            "in": "path",
+            "required": true,
+            "description": "The cryptoCode of the lightning-node to query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "BTC"
+          },
+          {
+            "name": "includePending",
+            "in": "query",
+            "required": false,
+            "description": "Also include pending payments",
+            "schema": {
+              "type": "boolean",
+              "nullable": true,
+              "default": false
+            }
+          },
+          {
+            "name": "offsetIndex",
+            "in": "query",
+            "required": false,
+            "description": "The index of an invoice that will be used as the start of the list",
+            "schema": {
+              "type": "number",
+              "nullable": true,
+              "default": 0
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The store id with the lightning-node configuration to query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "View information about the lightning payments",
+        "operationId": "StoreLightningNodeApi_GetPayments",
+        "responses": {
+          "200": {
+            "description": "Lightning payment data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LightningPaymentData"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing authorization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unable to access the lightning node"
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.cancreatelightninginvoice"
             ],
             "Basic": []
           }
@@ -4661,7 +5244,7 @@
         ]
       }
     },
-    "/api/v1/stores/{storeId}/payout-processors/OnChainAutomatedTransferSenderFactory/{paymentMethod}": {
+    "/api/v1/stores/{storeId}/payout-processors/OnChainAutomatedPayoutSenderFactory/{paymentMethod}": {
       "get": {
         "tags": [
           "Stores (Payout Processors)"
@@ -4786,7 +5369,7 @@
         ]
       }
     },
-    "/api/v1/stores/{storeId}/payout-processors/LightningAutomatedTransferSenderFactory/{paymentMethod}": {
+    "/api/v1/stores/{storeId}/payout-processors/LightningAutomatedPayoutSenderFactory/{paymentMethod}": {
       "get": {
         "tags": [
           "Stores (Payout Processors)"
@@ -5018,7 +5601,7 @@
         ]
       }
     },
-    "/api/v1/stores/{storeId}/payout-processors/LightningAutomatedTransferSenderFactory": {
+    "/api/v1/stores/{storeId}/payout-processors/LightningAutomatedPayoutSenderFactory": {
       "get": {
         "tags": [
           "Stores (Payout Processors)"
@@ -5036,7 +5619,7 @@
           }
         ],
         "description": "Get configured store Lightning automated payout processors",
-        "operationId": "GreenfieldStoreAutomatedLightningPayoutProcessorsController_GetStoreLightningAutomatedTransferSenderFactory",
+        "operationId": "GreenfieldStoreAutomatedLightningPayoutProcessorsController_GetStoreLightningAutomatedPayoutSenderFactory",
         "responses": {
           "200": {
             "description": "configured processors",
@@ -5227,7 +5810,8 @@
         "security": [
           {
             "API_Key": [
-              "btcpay.store.canmanagepullpayments"
+              "btcpay.store.cancreatepullpayments",
+              "btcpay.store.cancreatenonapprovedpullpayments"
             ],
             "Basic": []
           }
@@ -5469,6 +6053,46 @@
         "security": []
       }
     },
+    "/api/v1/pull-payments/{pullPaymentId}/lnurl": {
+      "parameters": [
+        {
+          "name": "pullPaymentId",
+          "in": "path",
+          "required": true,
+          "description": "The ID of the pull payment",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get Pull Payment LNURL details",
+        "operationId": "PullPayments_GetPullPaymentLNURL",
+        "description": "Get Pull Payment LNURL details",
+        "responses": {
+          "200": {
+            "description": "Pull payment LNURL details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LNURLData"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull payment not found"
+          },
+          "400": {
+            "description": "Pull payment found but does not support LNURL"
+          }
+        },
+        "tags": [
+          "Pull payments (Public)"
+        ],
+        "security": []
+      }
+    },
     "/api/v1/stores/{storeId}/payouts": {
       "parameters": [
         {
@@ -5538,7 +6162,8 @@
         "security": [
           {
             "API_Key": [
-              "btcpay.store.canmanagepullpayments"
+              "btcpay.store.cancreatepullpayments",
+              "btcpay.store.cancreatenonapprovedpullpayments"
             ],
             "Basic": []
           }
@@ -6081,6 +6706,225 @@
           },
           "404": {
             "description": "The store was not found"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stores/{storeId}/lightning-addresses": {
+      "get": {
+        "tags": [
+          "Lightning address"
+        ],
+        "summary": "Get store configured lightning addresses",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The store to fetch",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get store configured lightning addresses",
+        "operationId": "StoreLightningAddresses_GetStoreLightningAddresses",
+        "responses": {
+          "200": {
+            "description": "The lightning addresses configured in the store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LightningAddressData"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If you are authenticated but forbidden to view the specified store"
+          },
+          "404": {
+            "description": "The key is not found for this store/wallet"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canviewstoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stores/{storeId}/lightning-addresses/{username}": {
+      "get": {
+        "tags": [
+          "Lightning address"
+        ],
+        "summary": "Get store configured lightning address",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "description": "The lightning address username",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The store to fetch",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get store configured lightning address",
+        "operationId": "StoreLightningAddresses_GetStoreLightningAddress",
+        "responses": {
+          "200": {
+            "description": "The lightning address configured in the store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LightningAddressData"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If you are authenticated but forbidden to view the specified store"
+          },
+          "404": {
+            "description": "The key is not found for this store/wallet"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canviewstoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Lightning address"
+        ],
+        "summary": "Add or update store configured lightning address",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The store to fetch",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "description": "the lightning address username",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Add or update store configured lightning address",
+        "operationId": "StoreLightningAddresses_AddOrUpdateStoreLightningAddress",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LightningAddressData"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "The lightning address configured in the store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LightningAddressData"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If you are authenticated but forbidden to view the specified store"
+          },
+          "404": {
+            "description": "The key is not found for this store/wallet"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Lightning address"
+        ],
+        "summary": "Remove configured lightning address",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "description": "The lightning address username",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The store to fetch",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Remove store configured lightning address",
+        "operationId": "StoreLightningAddresses_RemoveStoreLightningAddress",
+        "responses": {
+          "200": {
+            "description": "Lightning address removed"
+          },
+          "403": {
+            "description": "If you are authenticated but forbidden to view the specified store"
+          },
+          "404": {
+            "description": "The key is not found for this store/wallet"
           }
         },
         "security": [
@@ -7387,7 +8231,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/StoreRatePreviewResult"
+                    "$ref": "#/components/schemas/StoreRateResult"
                   }
                 }
               }
@@ -7411,6 +8255,82 @@
           {
             "API_Key": [
               "btcpay.store.canmodifystoresettings"
+            ],
+            "Basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stores/{storeId}/rates": {
+      "get": {
+        "tags": [
+          "Stores (Rates)"
+        ],
+        "parameters": [
+          {
+            "name": "currencyPair",
+            "description": "The currency pairs to fetch rates for",
+            "example": [
+              "BTC_USD",
+              "BTC_EUR"
+            ],
+            "in": "query",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string"
+              }
+            },
+            "x-position": 1
+          },
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "description": "The store to fetch",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get rates",
+        "description": "Get rates on the store",
+        "operationId": "Stores_GetStoreRates",
+        "responses": {
+          "200": {
+            "description": "The settings were executed and a preview was returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StoreRateResult"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A list of errors that occurred when previewing the settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If you are authenticated but forbidden to modify the store"
+          }
+        },
+        "security": [
+          {
+            "API_Key": [
+              "btcpay.store.canviewstoresettings"
             ],
             "Basic": []
           }
@@ -7531,7 +8451,7 @@
         ]
       }
     },
-    "/api/v1/stores/{storeId}/users/{userId}": {
+    "/api/v1/stores/{storeId}/users/{idOrEmail}": {
       "delete": {
         "tags": [
           "Stores (Users)"
@@ -7553,7 +8473,7 @@
             "name": "userId",
             "in": "path",
             "required": true,
-            "description": "The user",
+            "description": "The user's id or email",
             "schema": {
               "type": "string"
             }
@@ -9070,7 +9990,8 @@
                   },
                   "password": {
                     "type": "string",
-                    "description": "The password of the new user"
+                    "description": "The password of the new user (if no password is set, an email will be sent to the user requiring him to set the password)",
+                    "nullable": true
                   },
                   "isAdministrator": {
                     "type": "boolean",
@@ -9753,27 +10674,347 @@
           },
           "permissions": {
             "type": "array",
-            "description": "The permissions associated to this API Key",
+            "description": "The permissions associated to this API Key (can be scoped to a specific store)",
             "nullable": false,
             "items": {
               "type": "string"
-            }
+            },
+            "example": [
+              "btcpay.server.canmanageusers",
+              "btcpay.server.canmanageusers:2KxSpc9V5zDWfUbvgYiZuAfka4wUhGF96F75Ao8y4zHP"
+            ]
           }
         }
       },
       "PointOfSaleAppData": {
         "allOf": [
-          {},
           {
             "$ref": "#/components/schemas/BasicAppData"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Display title of the app",
+                "example": "My PoS app"
+              },
+              "description": {
+                "type": "string",
+                "description": "App description",
+                "example": "This is my amazing PoS app"
+              },
+              "defaultView": {
+                "type": "string",
+                "description": "App view type (e.g., static, cart, etc...)",
+                "example": "Cart",
+                "x-enumNames": [
+                  "Static",
+                  "Cart",
+                  "Light",
+                  "Print"
+                ],
+                "enum": [
+                  "Static",
+                  "Cart",
+                  "Light",
+                  "Print"
+                ]
+              },
+              "showCustomAmount": {
+                "type": "boolean",
+                "description": "Whether the option to enter a custom amount is shown",
+                "example": true
+              },
+              "showDiscount": {
+                "type": "boolean",
+                "description": "Whether the option to enter a discount is shown",
+                "example": false
+              },
+              "enableTips": {
+                "type": "boolean",
+                "description": "Whether the option to enter a tip is shown",
+                "example": true
+              },
+              "currency": {
+                "type": "string",
+                "description": "Currency used for the app",
+                "example": "BTC"
+              },
+              "items": {
+                "type": "object",
+                "description": "JSON object of app items",
+                "example": [
+                  {
+                    "description": "Lovely, fresh and tender, Meng Ding Gan Lu ('sweet dew') is grown in the lush Meng Ding Mountains of the southwestern province of Sichuan where it has been cultivated for over a thousand years.",
+                    "id": "green tea",
+                    "image": "~/img/pos-sample/green-tea.jpg",
+                    "price": {
+                      "type": 2,
+                      "formatted": "$1.00",
+                      "value": 1
+                    },
+                    "title": "Green Tea",
+                    "buyButtonText": null,
+                    "inventory": 5,
+                    "paymentMethods": null,
+                    "disabled": false
+                  },
+                  {
+                    "description": "Tian Jian Tian Jian means 'heavenly tippy tea' in Chinese, and it describes the finest grade of dark tea. Our Tian Jian dark tea is from Hunan province which is famous for making some of the best dark teas available.",
+                    "id": "black tea",
+                    "image": "~/img/pos-sample/black-tea.jpg",
+                    "price": {
+                      "type": 2,
+                      "formatted": "$1.00",
+                      "value": 1
+                    },
+                    "title": "Black Tea",
+                    "buyButtonText": "Test Buy Button Text",
+                    "inventory": null,
+                    "paymentMethods": null,
+                    "disabled": false
+                  }
+                ]
+              },
+              "fixedAmountPayButtonText": {
+                "type": "string",
+                "description": "Payment button text template for items with a set price",
+                "example": "Buy for {0}"
+              },
+              "customAmountPayButtonText": {
+                "type": "string",
+                "description": "Payment button text which appears for items which allow user to input a custom amount",
+                "example": "Pay"
+              },
+              "tipText": {
+                "type": "string",
+                "description": "Prompt which appears next to the tip amount field if tipping is enabled",
+                "example": "Do you want to leave a tip?"
+              },
+              "customCSSLink": {
+                "type": "string",
+                "description": "Link to a custom CSS stylesheet to be used in the app",
+                "example": "https://bootswatch.com/4/slate/bootstrap.min.css"
+              },
+              "notificationUrl": {
+                "type": "string",
+                "description": "Callback notification url to POST to once when invoice is paid for and once when there are enough blockchain confirmations"
+              },
+              "redirectUrl": {
+                "type": "string",
+                "description": "URL user is redirected to once invoice is paid"
+              },
+              "embeddedCSS": {
+                "type": "string",
+                "description": "Custom CSS embedded into the app"
+              },
+              "redirectAutomatically": {
+                "type": "boolean",
+                "description": "Whether user is redirected to specified redirect URL automatically after the invoice is paid",
+                "example": true
+              },
+              "requiresRefundEmail": {
+                "type": "boolean",
+                "description": "Whether refund email is required when paying the invoice. Defaults to `null` if not explicitly set.",
+                "example": false,
+                "nullable": true
+              }
+            }
           }
         ]
       },
       "CrowdfundAppData": {
         "allOf": [
-          {},
           {
             "$ref": "#/components/schemas/BasicAppData"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Display title of the app",
+                "example": "My crowdfund app"
+              },
+              "description": {
+                "type": "string",
+                "description": "App description",
+                "example": "My crowdfund description"
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether the app is enabled to be viewed by everyone",
+                "example": true
+              },
+              "enforceTargetAmount": {
+                "type": "boolean",
+                "description": "Whether contributions over the set target amount are allowed",
+                "example": false
+              },
+              "startDate": {
+                "type": "number",
+                "description": "UNIX timestamp for crowdfund start time (https://www.unixtimestamp.com/)",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UnixTimestamp"
+                  }
+                ],
+                "example": 768658369
+              },
+              "endDate": {
+                "type": "number",
+                "description": "UNIX timestamp for crowdfund end time (https://www.unixtimestamp.com/)",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UnixTimestamp"
+                  }
+                ],
+                "example": 771336769
+              },
+              "targetCurrency": {
+                "type": "string",
+                "description": "Target currency for the crowdfund",
+                "example": "BTC"
+              },
+              "targetAmount": {
+                "type": "number",
+                "description": "Target amount for the crowdfund",
+                "example": 420.69
+              },
+              "customCSSLink": {
+                "type": "string",
+                "description": "Link to a custom CSS stylesheet to be used in the app"
+              },
+              "mainImageUrl": {
+                "type": "string",
+                "description": "URL for image used as a cover image for the app"
+              },
+              "embeddedCSS": {
+                "type": "string",
+                "description": "Custom CSS embedded into the app"
+              },
+              "perks": {
+                "type": "object",
+                "description": "JSON of perks available in the app",
+                "example": [
+                  {
+                    "description": null,
+                    "id": "test perk",
+                    "image": null,
+                    "price": {
+                      "type": 2,
+                      "formatted": "$100.00",
+                      "value": 100
+                    },
+                    "title": "test perk",
+                    "buyButtonText": null,
+                    "inventory": null,
+                    "paymentMethods": null,
+                    "disabled": false
+                  },
+                  {
+                    "description": "this is an amazing perk",
+                    "id": "test test",
+                    "image": "https://mainnet.demo.btcpayserver.org/img/errorpages/404_nicolas.jpg",
+                    "price": {
+                      "type": 1,
+                      "formatted": "$69.42",
+                      "value": 69.42
+                    },
+                    "title": "test test",
+                    "buyButtonText": null,
+                    "inventory": 5,
+                    "paymentMethods": null,
+                    "disabled": false
+                  },
+                  {
+                    "description": null,
+                    "id": "f$t45hj764325",
+                    "image": null,
+                    "price": {
+                      "type": 0,
+                      "formatted": null,
+                      "value": null
+                    },
+                    "title": "amazing perk",
+                    "buyButtonText": "button text",
+                    "inventory": null,
+                    "paymentMethods": null,
+                    "disabled": true
+                  }
+                ]
+              },
+              "notificationUrl": {
+                "type": "string",
+                "description": "Callback notification url to POST to once when invoice is paid for and once when there are enough blockchain confirmations"
+              },
+              "tagline": {
+                "type": "string",
+                "description": "Tagline for the app displayed to user",
+                "example": "I can't believe it's not butter"
+              },
+              "disqusEnabled": {
+                "type": "boolean",
+                "description": "Whether Disqus is enabled for the app"
+              },
+              "disqusShortname": {
+                "type": "string",
+                "description": "Disqus shortname to used for the app"
+              },
+              "soundsEnabled": {
+                "type": "boolean",
+                "description": "Whether sounds on new contributions are enabled",
+                "example": false
+              },
+              "animationsEnabled": {
+                "type": "boolean",
+                "description": "Whether background animations on new contributions are enabled",
+                "example": true
+              },
+              "resetEveryAmount": {
+                "type": "number",
+                "description": "Contribution goal reset frequency amount",
+                "example": 1
+              },
+              "resetEvery": {
+                "type": "string",
+                "description": "Contribution goal reset frequency",
+                "example": "Day"
+              },
+              "displayPerksValue": {
+                "type": "boolean",
+                "description": "Whether perk values are displayed",
+                "example": false
+              },
+              "sortPerksByPopularity": {
+                "type": "boolean",
+                "description": "Whether perks are sorted by popularity",
+                "default": true
+              },
+              "sounds": {
+                "type": "array",
+                "description": "Array of custom sounds which can be used on new contributions",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "https://github.com/ClaudiuHKS/AdvancedQuakeSounds/raw/master/sound/AQS/doublekill.wav"
+                ]
+              },
+              "animationColors": {
+                "type": "array",
+                "description": "Array of custom HEX colors which can be used for background animations on new contributions",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "#FF0000",
+                  "#00FF00",
+                  "#0000FF"
+                ]
+              }
+            }
           }
         ]
       },
@@ -9916,7 +11157,7 @@
           },
           "requiresRefundEmail": {
             "type": "boolean",
-            "description": "Whether to redirect user to redirect URL automatically once invoice is paid. Defaults to what is set in the store settings",
+            "description": "Whether refund email is required when paying the invoice. Defaults to what is set in the store settings",
             "nullable": true
           },
           "checkoutType": {
@@ -10073,7 +11314,7 @@
           },
           "displayPerksValue": {
             "type": "boolean",
-            "description": "Enables background animations on new contributions if set to true",
+            "description": "Displays values of perks if set to true",
             "default": false,
             "nullable": true
           },
@@ -10218,11 +11459,11 @@
           "assetBalances": [
             {
               "asset": "BTC",
-              "qty": 1.23456
+              "qty": "1.23456"
             },
             {
               "asset": "USD",
-              "qty": 123456.78
+              "qty": "123456.78"
             }
           ],
           "config": {
@@ -10288,12 +11529,14 @@
             "nullable": false
           },
           "bid": {
-            "type": "number",
+            "type": "string",
+            "format": "decimal",
             "description": "The bid price.",
             "nullable": false
           },
           "ask": {
-            "type": "number",
+            "type": "string",
+            "format": "decimal",
             "description": "The ask price",
             "nullable": false
           }
@@ -10301,8 +11544,8 @@
         "example": {
           "fromAsset": "USD",
           "toAsset": "BTC",
-          "bid": 30000.12,
-          "ask": 30002.24
+          "bid": "30000.12",
+          "ask": "30002.24"
         }
       },
       "TradeRequestData": {
@@ -10322,11 +11565,14 @@
             "oneOf": [
               {
                 "type": "string",
-                "description": "The percent of fromAsset to convert into toAsset. The value must end with \"%\" to be considered a percentage."
+                "format": "decimal",
+                "description": "The qty of fromAsset to convert into toAsset.",
+                "example": "1.50"
               },
               {
-                "type": "number",
-                "description": "The qty of fromAsset to convert into toAsset."
+                "type": "string",
+                "description": "The percent of fromAsset to convert into toAsset. The value must end with \"%\" to be considered a percentage.",
+                "example": "50%"
               }
             ],
             "nullable": false
@@ -10378,22 +11624,22 @@
           "ledgerEntries": [
             {
               "asset": "BTC",
-              "qty": -0.00123456,
+              "qty": "-0.00123456",
               "type": "Fee"
             },
             {
               "asset": "BTC",
-              "qty": 1.23456,
+              "qty": "1.23456",
               "type": "Trade"
             },
             {
               "asset": "KFEE",
-              "qty": -123.456,
+              "qty": "-123.456",
               "type": "Fee"
             },
             {
               "asset": "USD",
-              "qty": -61728,
+              "qty": "-61728",
               "type": "Trade"
             }
           ],
@@ -10411,14 +11657,22 @@
             "nullable": false
           },
           "qty": {
-            "type": "number",
-            "description": "The qty to withdraw.",
-            "nullable": false
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "decimal",
+                "description": "The quantity to withdraw."
+              },
+              {
+                "type": "string",
+                "description": "The percent of your holdings to withdraw. The value must end with \"%\" to be considered a percentage."
+              }
+            ]
           }
         },
         "example": {
           "paymentMethod": "BTC-OnChain",
-          "qty": 0.123456
+          "qty": "0.123456"
         }
       },
       "WithdrawalResultData": {
@@ -10476,13 +11730,77 @@
           "ledgerEntries": [
             {
               "asset": "BTC",
-              "qty": -0.123456,
-              "type": "Withdrawal"
+              "qty": "-0.005",
+              "type": "Fee"
             },
             {
               "asset": "BTC",
-              "qty": -0.005,
+              "qty": "-0.123456",
+              "type": "Withdrawal"
+            }
+          ],
+          "withdrawalId": "XXXX-XXXX-XXXX-XXXX",
+          "accountId": "xxxxxxxxxxxxxxx",
+          "custodianCode": "kraken",
+          "status": "Complete",
+          "transactionId": "xxxxxxxxxxxxxxx",
+          "targetAddress": "bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      },
+      "WithdrawalSimulationResultData": {
+        "type": "object",
+        "properties": {
+          "asset": {
+            "type": "string",
+            "description": "The asset that is being withdrawn."
+          },
+          "paymentMethod": {
+            "type": "string",
+            "description": "The payment method that is used (crypto code + network)."
+          },
+          "ledgerEntries": {
+            "type": "array",
+            "description": "The asset entries that would be changed if this were a real withdrawal. The first item is always the withdrawal itself. It could also includes ledger entries for the costs and may include credits or exchange tokens to give a discount.",
+            "items": {
+              "$ref": "#/components/schemas/LedgerEntryData"
+            }
+          },
+          "accountId": {
+            "type": "string",
+            "description": "The unique ID of the custodian account used.",
+            "nullable": false
+          },
+          "custodianCode": {
+            "type": "string",
+            "description": "The code of the custodian used.",
+            "nullable": false
+          },
+          "minQty": {
+            "type": "string",
+            "format": "decimal",
+            "description": "The minimum amount to withdraw",
+            "nullable": true
+          },
+          "maxQty": {
+            "type": "string",
+            "format": "decimal",
+            "description": "The maximum amount to withdraw",
+            "nullable": true
+          }
+        },
+        "example": {
+          "asset": "BTC",
+          "paymentMethod": "BTC-OnChain",
+          "ledgerEntries": [
+            {
+              "asset": "BTC",
+              "qty": "-0.005",
               "type": "Fee"
+            },
+            {
+              "asset": "BTC",
+              "qty": "-0.123456",
+              "type": "Withdrawal"
             }
           ],
           "withdrawalId": "XXXX-XXXX-XXXX-XXXX",
@@ -10503,7 +11821,8 @@
             "nullable": false
           },
           "qty": {
-            "type": "number",
+            "type": "string",
+            "format": "decimal",
             "description": "The quantity changed of the asset. Can be positive or negative.",
             "nullable": false
           },
@@ -10515,7 +11834,7 @@
         },
         "example": {
           "asset": "BTC",
-          "qty": 1.23456,
+          "qty": "1.23456",
           "type": "Trade"
         }
       },
@@ -10529,14 +11848,15 @@
             "nullable": false
           },
           "qty": {
-            "type": "number",
+            "type": "string",
+            "format": "decimal",
             "description": "The quantity changed of the asset. Can be positive or negative.",
             "nullable": false
           }
         },
         "example": {
           "asset": "BTC",
-          "qty": 1.23456
+          "qty": "1.23456"
         }
       },
       "AssetPairData": {
@@ -11060,6 +12380,7 @@
           "rate": {
             "type": "string",
             "format": "decimal",
+            "example": "64392.23",
             "description": "The rate between this payment method's currency and the invoice currency"
           },
           "paymentMethodPaid": {
@@ -11449,6 +12770,15 @@
             "type": "string",
             "description": "The amount received in millisatoshi"
           },
+          "paymentHash": {
+            "type": "string",
+            "description": "The payment hash"
+          },
+          "preimage": {
+            "type": "string",
+            "nullable": true,
+            "description": "The payment preimage (available when status is complete)"
+          },
           "customRecords": {
             "type": "object",
             "nullable": true,
@@ -11719,7 +13049,15 @@
         "properties": {
           "id": {
             "type": "string",
+            "description": "The id of the notification"
+          },
+          "identifier": {
+            "type": "string",
             "description": "The identifier of the notification"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the notification"
           },
           "body": {
             "type": "string",
@@ -12174,6 +13512,21 @@
           }
         }
       },
+      "LNURLData": {
+        "type": "object",
+        "properties": {
+          "lnurlBech32": {
+            "type": "string",
+            "description": "Bech32 representation of LNRURL",
+            "example": "lightning:lnurl1dp68gup69uhnzv3h9cczuvpwxyarzdp3xsez7sj5gvh42j2vfe24ynp0wa5hg6rywfshwtmswqhngvntdd6x6uzvx4jrvu2kvvur23n8v46rwjpexcc45563fn53w7"
+          },
+          "lnurlUri": {
+            "type": "string",
+            "description": "Bech32 representation of LNURL",
+            "example": "lnurlw://example.com/BTC/UILNURL/withdraw/pp/42kktmpL5d6qVc85Fget7H961ZSQ"
+          }
+        }
+      },
       "ApplicationServerInfoData": {
         "type": "object",
         "properties": {
@@ -12304,6 +13657,31 @@
           }
         }
       },
+      "LightningAddressData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "The username of the lightning address"
+          },
+          "currencyCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "The currency to generate the invoices for this lightning address in. Leave null lto use the store default."
+          },
+          "min": {
+            "type": "string",
+            "nullable": true,
+            "description": "The minimum amount in sats this ln address allows"
+          },
+          "max": {
+            "type": "string",
+            "nullable": true,
+            "description": "The maximum amount in sats this ln address allows"
+          }
+        }
+      },
       "GenericPaymentMethodData": {
         "type": "object",
         "additionalProperties": false,
@@ -12413,7 +13791,7 @@
           },
           "enableForStandardInvoices": {
             "type": "boolean",
-            "description": "Whether to allow this payment method to also be used for standard invoices and not just topup invoices."
+            "description": "Whether to allow this payment method to also be used for standard invoices and not just top-up invoices."
           },
           "lud12Enabled": {
             "type": "boolean",
@@ -12673,13 +14051,14 @@
           }
         }
       },
-      "StoreRatePreviewResult": {
+      "StoreRateResult": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "currencyPair": {
             "type": "string",
-            "description": "Currency pair in the format of BTC_USD"
+            "example": "BTC_USD",
+            "description": "Currency pair in the format of `BTC_USD`"
           },
           "errors": {
             "type": "array",
@@ -12691,7 +14070,9 @@
           },
           "rate": {
             "type": "string",
-            "description": "the rate fetched based on th currency pair"
+            "format": "decimal",
+            "example": "64392.23",
+            "description": "the rate fetched based on the currency pair"
           }
         }
       },
@@ -13103,6 +14484,33 @@
           }
         ]
       },
+      "PaymentMethodCriteriaData": {
+        "type": "object",
+        "properties": {
+          "paymentMethod": {
+            "type": "string",
+            "description": "The payment method (e.g., \"BTC\" or \"BTC_LightningLike\")",
+            "nullable": false
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "The currency",
+            "default": "USD",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "format": "decimal",
+            "minimum": 0,
+            "description": "The amount"
+          },
+          "above": {
+            "type": "boolean",
+            "default": false,
+            "description": "If the criterion is for above or below the amount"
+          }
+        }
+      },
       "StoreBaseData": {
         "type": "object",
         "x-abstract": true,
@@ -13114,6 +14522,7 @@
           },
           "website": {
             "type": "string",
+            "nullable": true,
             "description": "The absolute url of the store",
             "format": "url"
           },
@@ -13128,6 +14537,17 @@
             "minimum": 60,
             "maximum": 2073600,
             "description": "The time after which an invoice is considered expired if not paid. The value will be rounded down to a minute.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TimeSpanSeconds"
+              }
+            ]
+          },
+          "displayExpirationTimer": {
+            "default": 300,
+            "minimum": 60,
+            "maximum": 2073600,
+            "description": "The time left that will trigger the countdown timer on the checkout page to be shown. The value will be rounded down to a minute.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/TimeSpanSeconds"
@@ -13246,6 +14666,14 @@
             "type": "string",
             "example": "BTC",
             "description": "The default payment method to load when displaying an invoice. It can be in the format of `BTC_LightningNetwork` to specify Lightning to be the default or `BTC_OnChain`/ `BTC` for on-chain to be the default. "
+          },
+          "paymentMethodCriteria": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/PaymentMethodCriteriaData"
+            },
+            "description": "The criteria required to activate specific payment methods."
           }
         }
       },
@@ -13644,7 +15072,7 @@
     "securitySchemes": {
       "API_Key": {
         "type": "apiKey",
-        "description": "BTCPay Server supports authenticating and authorizing users through an API Key that is generated by them. Send the API Key as a header value to Authorization with the format: `token {token}`. For a smoother experience, you can generate a url that redirects users to an API key creation screen.\n\n The following permissions are available to the context of the user creating the API Key:\n\n* `unrestricted`: Unrestricted access\n* `btcpay.user.candeleteuser`: Delete user\n* `btcpay.user.canviewprofile`: View your profile\n* `btcpay.user.canmodifyprofile`: Manage your profile\n* `btcpay.user.canmanagenotificationsforuser`: Manage your notifications\n* `btcpay.user.canviewnotificationsforuser`: View your notifications\n\nThe following permissions are available if the user is an administrator:\n\n* `btcpay.server.canviewusers`: View users\n* `btcpay.server.cancreateuser`: Create new users\n* `btcpay.server.canmodifyserversettings`: Manage your server\n* `btcpay.server.canuseinternallightningnode`: Use the internal lightning node\n* `btcpay.server.cancreatelightninginvoiceinternalnode`: Create invoices with internal lightning node\n\nThe following permissions applies to all stores of the user, you can limit to a specific store with the following format: `btcpay.store.cancreateinvoice:6HSHAEU4iYWtjxtyRs9KyPjM9GAQp8kw2T9VWbGG1FnZ`:\n\n* `btcpay.store.canmodifystoresettings`: Modify your stores\n* `btcpay.store.canviewcustodianaccounts`: View exchange accounts linked to your stores\n* `btcpay.store.canmanagecustodianaccounts`: Manage exchange accounts linked to your stores\n* `btcpay.store.candeposittocustodianaccount`: Deposit funds to exchange accounts linked to your stores\n* `btcpay.store.canwithdrawfromcustodianaccount`: Withdraw funds from exchange accounts to your store\n* `btcpay.store.cantradecustodianaccount`: Trade funds on your store's exchange accounts\n* `btcpay.store.webhooks.canmodifywebhooks`: Modify stores webhooks\n* `btcpay.store.canviewstoresettings`: View your stores\n* `btcpay.store.cancreateinvoice`: Create an invoice\n* `btcpay.store.canviewinvoices`: View invoices\n* `btcpay.store.canmodifyinvoices`: Modify invoices\n* `btcpay.store.canmodifypaymentrequests`: Modify your payment requests\n* `btcpay.store.canviewpaymentrequests`: View your payment requests\n* `btcpay.store.canmanagepullpayments`: Manage your pull payments\n* `btcpay.store.canuselightningnode`: Use the lightning nodes associated with your stores\n* `btcpay.store.cancreatelightninginvoice`: Create invoices from the lightning nodes associated with your stores\n\nNote that API Keys only limits permission of a user and can never expand it. If an API Key has the permission `btcpay.server.canmodifyserversettings` but that the user account creating this API Key is not administrator, the API Key will not be able to modify the server settings.\nSome permissions may include other permissions, see [this operation](#operation/permissionsMetadata).\n",
+        "description": "BTCPay Server supports authenticating and authorizing users through an API Key that is generated by them. Send the API Key as a header value to Authorization with the format: `token {token}`. For a smoother experience, you can generate a url that redirects users to an API key creation screen.\n\n The following permissions are available to the context of the user creating the API Key:\n\n* `unrestricted`: Unrestricted access\n* `btcpay.user.candeleteuser`: Delete user\n* `btcpay.user.canviewprofile`: View your profile\n* `btcpay.user.canmodifyprofile`: Manage your profile\n* `btcpay.user.canmanagenotificationsforuser`: Manage your notifications\n* `btcpay.user.canviewnotificationsforuser`: View your notifications\n\nThe following permissions are available if the user is an administrator:\n\n* `btcpay.server.canviewusers`: View users\n* `btcpay.server.cancreateuser`: Create new users\n* `btcpay.server.canmanageusers`: Manage users\n* `btcpay.server.canmodifyserversettings`: Manage your server\n* `btcpay.server.canuseinternallightningnode`: Use the internal lightning node\n* `btcpay.server.canviewlightninginvoiceinternalnode`: View invoices from internal lightning node\n* `btcpay.server.cancreatelightninginvoiceinternalnode`: Create invoices with internal lightning node\n\nThe following permissions applies to all stores of the user, you can limit to a specific store with the following format: `btcpay.store.cancreateinvoice:6HSHAEU4iYWtjxtyRs9KyPjM9GAQp8kw2T9VWbGG1FnZ`:\n\n* `btcpay.store.canmodifystoresettings`: Modify your stores\n* `btcpay.store.canviewcustodianaccounts`: View exchange accounts linked to your stores\n* `btcpay.store.canmanagecustodianaccounts`: Manage exchange accounts linked to your stores\n* `btcpay.store.candeposittocustodianaccount`: Deposit funds to exchange accounts linked to your stores\n* `btcpay.store.canwithdrawfromcustodianaccount`: Withdraw funds from exchange accounts to your store\n* `btcpay.store.cantradecustodianaccount`: Trade funds on your store's exchange accounts\n* `btcpay.store.webhooks.canmodifywebhooks`: Modify stores webhooks\n* `btcpay.store.canviewstoresettings`: View your stores\n* `btcpay.store.cancreateinvoice`: Create an invoice\n* `btcpay.store.canviewinvoices`: View invoices\n* `btcpay.store.canmodifyinvoices`: Modify invoices\n* `btcpay.store.canmodifypaymentrequests`: Modify your payment requests\n* `btcpay.store.canviewpaymentrequests`: View your payment requests\n* `btcpay.store.canmanagepullpayments`: Manage your pull payments\n* `btcpay.store.cancreatepullpayments`: Create pull payments\n* `btcpay.store.cancreatenonapprovedpullpayments`: Create non-approved pull payments\n* `btcpay.store.canuselightningnode`: Use the lightning nodes associated with your stores\n* `btcpay.store.canviewlightninginvoice`: View the lightning invoices associated with your stores\n* `btcpay.store.cancreatelightninginvoice`: Create invoices from the lightning nodes associated with your stores\n\nNote that API Keys only limits permission of a user and can never expand it. If an API Key has the permission `btcpay.server.canmodifyserversettings` but that the user account creating this API Key is not administrator, the API Key will not be able to modify the server settings.\nSome permissions may include other permissions, see [this operation](#operation/permissionsMetadata).\n",
         "name": "Authorization",
         "in": "header"
       },
@@ -13743,6 +15171,10 @@
     {
       "name": "Stores (Rates Config)",
       "description": "Store Rates Config operations"
+    },
+    {
+      "name": "Stores (Rates)",
+      "description": "Store Rates operations"
     },
     {
       "name": "Stores (Users)",
